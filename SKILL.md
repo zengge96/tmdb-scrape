@@ -17,12 +17,12 @@ node gen_file_with_num.js <输入文件> <输出文件>
 - 输入：/tmp/incomplete_lines/incomplete.txt
 - 输出：/tmp/incomplete_lines/incomplete_with_num.txt
 
-### 步骤1：生成行号文件
+### 步骤2：获取批次文件
 ```bash
-node gen_line_num.js <输入文件> <输出文件>
+node get_one_bach_lines.js <输入文件> <输出文件>
 ```
-- 输入：/tmp/incomplete_lines/incomplete.txt
-- 输出：/tmp/incomplete_lines/incomplete_with_num.txt
+- 输入：/tmp/incomplete_lines/incomplete_with_num.txt
+- 输出：/tmp/incomplete_lines/ibatch1_names.txt
 
 ### 步骤2：AI提取片名
 从路径中智能提取电影名称
