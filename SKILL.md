@@ -1,5 +1,5 @@
 ---
-name: tmdb-scrape-concurrent
+name: tmdb-scrape
 description: 电影信息补全工作流（全流程并发版）。利用 Subagents 并发处理从片名提取、TMDB 检索到最终路径映射的全过程。
 ---
 
