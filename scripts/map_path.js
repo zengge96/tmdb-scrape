@@ -87,7 +87,12 @@ function processError(lineMap) {
   for (const line of lines) {
     const parts = line.split('#');
     if (parts.length < 2) continue;
+    // 🔧 修复：检查 parts[0] 是否为有效行号
     const lineNum = parseInt(parts[0]);
+    if (isNaN(lineNum)) {
+      // 如果第一部分不是数字，说明是路径格式错误，跳过
+      continue;
+    }
     // 去掉行号前缀（如 "1|." -> "."）
     let originalPath = lineMap[lineNum] || '';
     if (originalPath.includes('|')) {
