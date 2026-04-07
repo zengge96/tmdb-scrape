@@ -6,6 +6,7 @@
  * 
  * 用法: node map_path.js <原始文件> <成功文件> <错误文件> <成功输出> <错误输出>
  */
+
 const fs = require('fs');
 
 if (process.argv.length < 7) {
@@ -44,8 +45,12 @@ function processSuccess(lineMap) {
     const parts = line.split('#');
     if (parts.length < 3) continue;
     const lineNum = parseInt(parts[0]);
-    const originalPath = lineMap[lineNum] || '';
-    
+    // 去掉行号前缀（如 "1|." -> "."）
+    let originalPath = lineMap[lineNum] || '';
+    if (originalPath.includes('|')) {
+      originalPath = originalPath.substring(originalPath.indexOf('|') + 1);
+    }
+
     let tmdb = {};
     try {
       // 格式: parts[0]=行号, parts[1]=路径, parts[2]=片名, parts[3]="{搜索}]|[{详情}]"
@@ -57,7 +62,7 @@ function processSuccess(lineMap) {
     } catch(e) {
       tmdb = {};
     }
-    
+
     if (!tmdb.id) continue;
     const title = tmdb.title || '';
     const id = tmdb.id || '';
@@ -66,6 +71,7 @@ function processSuccess(lineMap) {
     const year = tmdb.year || '';
     const countries = tmdb.countries || '';
     const genres = tmdb.genres || '';
+
     output += `${originalPath}#${title}#${id}#${rating}#${poster}#${year}#${countries}#${genres}\n`;
   }
   return output;
@@ -82,7 +88,11 @@ function processError(lineMap) {
     const parts = line.split('#');
     if (parts.length < 2) continue;
     const lineNum = parseInt(parts[0]);
-    const originalPath = lineMap[lineNum] || '';
+    // 去掉行号前缀（如 "1|." -> "."）
+    let originalPath = lineMap[lineNum] || '';
+    if (originalPath.includes('|')) {
+      originalPath = originalPath.substring(originalPath.indexOf('|') + 1);
+    }
     const reason = parts.slice(1).join('|');
     output += `${originalPath}#${reason}\n`;
   }
@@ -97,26 +107,26 @@ function main() {
   console.log(`错误文件: ${TEMP_ERROR}`);
   console.log(`成功输出: ${OUTPUT_SUCCESS}`);
   console.log(`错误输出: ${OUTPUT_ERROR}\n`);
-  
+
   // 建立行号映射
   console.log('建立行号映射...');
   const lineMap = buildLineMap();
   console.log(`共 ${Object.keys(lineMap).length} 行`);
-  
+
   // 处理成功记录
   console.log('处理成功记录...');
   const successData = processSuccess(lineMap);
   const successCount = (successData.match(/\n/g) || []).length || (successData ? 1 : 0);
   fs.writeFileSync(OUTPUT_SUCCESS, successData);
   console.log(`成功: ${successCount} 条 → ${OUTPUT_SUCCESS}`);
-  
+
   // 处理错误记录
   console.log('处理错误记录...');
   const errorData = processError(lineMap);
   const errorCount = (errorData.match(/\n/g) || []).length || (errorData ? 1 : 0);
   fs.writeFileSync(OUTPUT_ERROR, errorData);
   console.log(`错误: ${errorCount} 条 → ${OUTPUT_ERROR}`);
-  
+
   console.log('========== 完成 ==========');
 }
 
