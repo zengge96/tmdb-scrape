@@ -1,21 +1,31 @@
 ---
 name: tmdb-scrape
-description: 115网盘电影信息补全工作流。使用TMDB API批量查询电影信息并补全115网盘中的电影元数据。适用于用户需要批量丰富电影数据库信息、补充TMDB评分、海报、国家、类型等元数据。
+description: 电影信息补全工作流。使用TMDB API批量查询电影信息并补全中的电影元数据。适用于用户需要批量丰富电影数据库信息、补充TMDB评分、海报、国家、类型等元数据。
 ---
 
 # TMDB电影信息补全工作流
 
 ## 概述
-本技能用于将115网盘中不完整的电影记录通过TMDB API进行信息补全。
+本技能用于将中不完整的电影记录通过TMDB API进行信息补全。
 
 ## 完整流程（7步）
 
-### 步骤1：生成行号文件
+### 步骤1：生成带行号的完整文件
 ```bash
-node gen_line_num.js <批号> <每批条数>
+node gen_file_with_num.js <输入文件> <输出文件>
 ```
 - 输入：/tmp/incomplete_lines/incomplete.txt
-- 输出：/tmp/incomplete_lines/batch{N}_num.txt
+- 输出：/tmp/incomplete_lines/incomplete_with_num.txt
+
+### 步骤1：生成行号文件
+```bash
+node gen_line_num.js <输入文件> <输出文件>
+```
+- 输入：/tmp/incomplete_lines/incomplete.txt
+- 输出：/tmp/incomplete_lines/incomplete_with_num.txt
+
+### 步骤2：AI提取片名
+从路径中智能提取电影名称
 
 ### 步骤2：AI提取片名
 从路径中智能提取电影名称
