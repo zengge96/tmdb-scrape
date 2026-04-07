@@ -61,6 +61,7 @@ node map_path.js <成功文件> <错误文件>
 node merge.js <成功文件前缀> <错误文件前缀> <成功文件> <错误文件>
 ```
 
+>>>>>>> b5c963299c8e8b3b19d19e4820a5cf7e0cf581ad
 ## 脚本说明
 
 ### gen_file_with_num.js
