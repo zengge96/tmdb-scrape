@@ -16,6 +16,7 @@ node gen_file_with_num.js <输入文件> <输出文件>
 ```
 - 输入：/tmp/incomplete_lines/incomplete.txt
 - 输出：/tmp/incomplete_lines/incomplete_with_num.txt
+- 说明：默认输入文件是/tmp/incomplete_lines/incomplete.txt，也可以根据用户要求提取或生成。
 
 ### 步骤2：获取批次文件
 ```bash
@@ -50,10 +51,15 @@ node tmdb_details.js <输入文件> <输出文件>
 ```bash
 node map_path.js <成功文件> <错误文件>
 ```
-- 输出：success.txt / error.txt
+- 输出：success1.txt / error1.txt（输出文件按照批次命名，每批文件名不同）
 - 格式：路径#中文名#TMDB_ID#评分#海报#年份#国家#类型
 
-### 步骤8：循环处理下一批
+### 步骤8：循环步骤2~步骤7处理下一批
+
+### 步骤9：所有批次完成后，合并所有输出文件（todo，merge.js待补齐）
+```bash
+node merge.js <成功文件前缀> <错误文件前缀> <成功文件> <错误文件>
+```
 
 ## 脚本说明
 
