@@ -5,7 +5,7 @@ description: 电影信息补全工作流。通过将大任务切分为小批次�
 
 # 🎬 TMDB 电影信息补全工作流
 
-本工作流通过 **Node.js 脚本** 提供核心能力，通过**分批次循环处理**来解决大规模数据的上下文过载问题。每个批次独立完成从“路径提取”到“路径映射”的闭环。
+本工作流通过 **Node.js 脚本** 提供核心能力，通过**分批次循环处理**来解决大规模数据的上下文过载问题。每个批次独立完成从"路径提取"到"路径映射"的闭环。
 
 ## 🛠 工作流概览
 
@@ -37,22 +37,34 @@ D5 --> E[Step 4: 全局合并]
 将带行号的文件切分为多个批次文件（如 `batch-01.txt`, `batch-02.txt` 等），每个文件建议 50 行，以控制单次 AI 处理的 Token 长度。
 - **命令**: `node get_one_bach_lines.js <输入> <输出> <批次编号> <行数>`
 
-### Step 3: 批次执行逻辑 (处理流程)
-
+### Step 3: 批次执行逻辑 
 针对每个批次文件（例如 `batch-01.txt`），按顺序执行以下任务：
 
-1.  **AI 提取**: 从原始路径中智能提取**纯净片名**和**年份**（处理路径乱码、去除字幕组标签等）。
-    *   格式化为：`行号#全路径名#纯净片名#年份`
-2.  **脚本搜索**: 调用 `node tmdb_search.js` 获取候选列表。
-    *   **逻辑**: 脚本内部进行年份容差过滤 (±1 年)。
-    *   **输入**: `temp/batch-XX-clean.txt`
-    *   **输出**: `temp/batch-XX-search.txt` (含候选结果集)
-    *   **注意**: 搜索结果为空时直接记录至错误文件，不进入下一步。
-3.  **AI 验证**: 从搜索结果候选中选出最匹配的 `TMDB_ID`。
-4.  **脚本详情**: 调用 `node tmdb_details.js` 获取国家、评分、海报等详细元数据。
-5.  **脚本映射**: 调用 `node map_path.js` 将 API 结果与原始路径关联，生成最终行数据。
-    *   **成功输出**: `results/success-XX.txt`
-    *   **错误输出**: `results/error-XX.txt`
+1. **AI 提取**: 从原始路径中智能提取**纯净片名**和**年份**（处理路径乱码、去除字幕组标签等）。
+   * 格式化为：`行号#全路径名#纯净片名#年份`
+
+2. **脚本搜索**: 调用 `node tmdb_search.js` 获取候选列表。
+   * **逻辑**: 脚本内部进行年份容差过滤 (±1 年)。
+   * **输入**: `temp/batch-XX-clean.txt`
+   * **输出**: `temp/batch-XX-search.txt` (含候选结果集)
+   * **注意**: 搜索结果为空时直接记录至错误文件，不进入下一步。
+
+3. **⚠️ AI 验证（必做）**: 从搜索结果候选中选出最匹配的 `TMDB_ID`。
+   * **必须执行，不可跳过**
+   * 输入: 搜索结果文件（包含多个候选的数组）
+   * 输出: `temp/batch-XX-selected.txt`，只包含选中的1个ID
+   * **输出格式要求**: 单个object（不是数组），格式为:
+     ```
+     行号#路径#片名#{"id":123,"title":"中文名","year":"2024","media_type":"movie","vote_average":8.5}
+     ```
+   * **关键**: `#{` 后面是单个JSON object，不带方括号 `[]`
+   * 如果输出格式错误（仍然是数组），详情脚本会报错并拒绝处理
+
+4. **脚本详情**: 调用 `node tmdb_details.js` 获取国家、评分、海报等详细元数据。
+
+5. **脚本映射**: 调用 `node map_path.js` 将 API 结果与原始路径关联，生成最终行数据。
+   * **成功输出**: `results/success-XX.txt`
+   * **错误输出**: `results/error-XX.txt`
 
 **文件命名与格式规范**:
 - 统一使用 `#` 作为分隔符，避免路径中常见的 `|` 或 `,` 导致解析错误。
@@ -88,12 +100,14 @@ node gen_file_with_num.js ./list.txt /tmp/indexed.txt
 node get_one_bach_lines.js /tmp/indexed.txt temp/batch-01.txt 1 50
 
 # [AI 步骤]: 提取 batch-01.txt 的片名/年份 -> 存入 batch-01-clean.txt
-# [脚本步骤]:
-node tmdb_search.js temp/batch-01-clean.txt temp/batch-01-search.txt 1
+
+# [脚本步骤]: node tmdb_search.js temp/batch-01-clean.txt temp/batch-01-search.txt 1
+
 # [AI 步骤]: 从 search 结果中选 ID -> 存入 batch-01-selected.txt
-# [脚本步骤]:
-node tmdb_details.js temp/batch-01-selected.txt temp/batch-01-details.txt
-node map_path.js /tmp/indexed.txt temp/batch-01-details.txt results/error-01.txt results/success-01.txt
+
+# [脚本步骤]: node tmdb_details.js temp/batch-01-selected.txt temp/batch-01-details.txt
+
+# [脚本步骤]: node map_path.js /tmp/indexed.txt temp/batch-01-details.txt results/error-01.txt results/success-01.txt
 
 # 3. 最终汇总
 node merge.js results/success- results/error- final_all_success.txt final_all_error.txt
@@ -101,8 +115,20 @@ node merge.js results/success- results/error- final_all_success.txt final_all_er
 
 ---
 
+## ⚠️ 重要提醒
+
+- **AI验证步骤不可跳过**: 每批次必须执行AI验证步骤，从搜索候选结果中选择最匹配的TMDB ID，然后才能进入详情查询步骤。
+- **AI验证输出格式**: 必须输出单个object格式，不是数组。例如：
+  - 错误: `#{"id":123,"title":"名"},{"id":456,"title":"名2"}]` (这是数组)
+  - 正确: `#{"id":123,"title":"名","year":"2024","media_type":"movie","vote_average":8.5}` (这是单个object)
+- 搜索结果为空是正常的（TMDB上没有对应影片），直接输出到错误结果，无需AI再去匹配
+
 💡 **核心优势说明**:
-1.  **无 Subagent 依赖**: 流程扁平化，直接在主任务中通过循环执行。
-2.  **上下文隔离**: 通过 `batch-XX.txt` 将长文本拆分，确保 AI 在提取和选择 ID 时不会因为 Token 过长而导致幻觉。
-3.  **脚本容错**: 年份过滤和空结果处理由脚本控制，AI 仅负责逻辑判断，显著提升准确率。
-4.  **断点续传**: 若某个批次失败，只需重新处理该批次的 `success-XX.txt` 即可。
+
+1. **无 Subagent 依赖**: 流程扁平化，直接在主任务中通过循环执行。
+
+2. **上下文隔离**: 通过 `batch-XX.txt` 将长文本拆分，确保 AI 在提取和选择 ID 时不会因为 Token 过长而导致幻觉。
+
+3. **脚本容错**: 年份过滤和空结果处理由脚本控制，AI 仅负责逻辑判断，显著提升准确率。
+
+4. **断点续传**: 若某个批次失败，只需重新处理该批次的 `success-XX.txt` 即可。

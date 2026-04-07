@@ -41,10 +41,7 @@ function tmdbSearch(query) {
       });
     });
     req.on('error', reject);
-    req.setTimeout(10000, () => {
-      req.destroy();
-      resolve([]);
-    });
+    req.setTimeout(10000, () => { req.destroy(); resolve([]); });
   });
 }
 
@@ -53,6 +50,11 @@ function tmdbSearch(query) {
 // 2. 行号#全路径名#片名（无年份 - 兼容旧格式）
 function parseLine(line) {
   const parts = line.trim().split('#');
+  // ⚠️ 校验输入格式：至少需要 行号#路径#片名
+  if (parts.length < 3) {
+    console.log(` → 错误：输入格式错误！应为 "行号#路径#片名#年份"，当前格式: ${line}`);
+    return null;
+  }
   const lineNum = parts[0]?.trim() || '';
   const fullPath = parts[1]?.trim() || '';
   const name = parts[2]?.trim() || '';
@@ -64,12 +66,9 @@ function parseLine(line) {
 function isYearMatch(resultYear, targetYear, tolerance) {
   if (!targetYear || !resultYear || resultYear === '') return true; // 无年份不过滤
   if (resultYear === '') return true;
-  
   const r = parseInt(resultYear);
   const t = parseInt(targetYear);
-  
   if (isNaN(r) || isNaN(t)) return true;
-  
   return Math.abs(r - t) <= tolerance;
 }
 
@@ -85,27 +84,32 @@ async function main() {
     .filter(l => l.trim());
 
   let output = '';
+  let errorCount = 0;
+  
   for (const line of lines) {
-    const { lineNum, fullPath, name, year } = parseLine(line);
-    
-    if (!name) continue;
+    const parsed = parseLine(line);
+    if (!parsed || !parsed.name) {
+      errorCount++;
+      continue;
+    }
+    const { lineNum, fullPath, name, year } = parsed;
     
     console.log(`[${lineNum}] 搜索: ${name}${year ? ` (${year})` : ''}`);
-    
+
     const results = await tmdbSearch(name);
-    
+
     // 过滤年份（如果提供了年份）
     let filtered = results
       .filter(r => r.media_type === 'movie' || r.media_type === 'tv')
       .slice(0, 20); // 先获取更多结果用于过滤
-    
+
     // 应用年份容差过滤
     if (year) {
       const beforeCount = filtered.length;
       filtered = filtered.filter(r => isYearMatch(r.release_date?.substring(0, 4) || r.first_air_date?.substring(0, 4) || '', year, YEAR_TOLERANCE));
       console.log(` → 年份过滤: ${beforeCount} → ${filtered.length} (容差±${YEAR_TOLERANCE})`);
     }
-    
+
     // 最多保留10个结果
     filtered = filtered.slice(0, 10).map(r => ({
       id: r.id,
@@ -119,10 +123,14 @@ async function main() {
     // 输出格式：行号#全路径名#片名#[{搜索结果}]
     output += `${lineNum}#${fullPath}#${name}#${JSON.stringify(filtered)}\n`;
     console.log(` → 找到 ${filtered.length} 个结果`);
-
+    
     await new Promise(r => setTimeout(r, 200));
   }
 
+  if (errorCount > 0) {
+    console.log(`\n⚠️ 警告：${errorCount} 行格式错误，请检查输入文件格式`);
+  }
+  
   fs.writeFileSync(OUTPUT_FILE, output);
   console.log(`\n完成！搜索结果已保存到: ${OUTPUT_FILE}`);
 }
