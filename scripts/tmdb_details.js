@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * 步骤5：TMDB详情查询（根据AI选中的ID获取详细信息）
- * 输入: 行号|片名|[{选中的TMDB结果}]
- * 输出: 行号|片名|[{完整详情}]
+ * 输入: 行号#片名#[{选中的TMDB结果}]
+ * 输出: 行号#片名#[{完整详情}]
  * 
  * 用法: node tmdb_details.js <输入文件> <输出文件>
  */
@@ -84,23 +84,23 @@ async function main() {
 
     let output = '';
     for (const line of lines) {
-        const idx = line.indexOf('|');
+        const idx = line.indexOf('#');
         if (idx === -1) continue;
         const lineNum = line.substring(0, idx);
         const name = line.substring(idx + 1).trim();
         console.log(`[${lineNum}] 查询详情: ${name}`);
         try {
             // 解析AI选中的结果
-            const start = line.indexOf('|[');
+            const start = line.indexOf('#[');
             if (start === -1) {
-                output += `${lineNum}|${name}|[]\n`;
+                output += `${lineNum}#${name}|[]\n`;
                 console.log(` → 无选中结果`);
                 continue;
             }
             const jsonStr = line.substring(start + 1);
             const selected = JSON.parse(jsonStr);
             if (!selected || selected.length === 0) {
-                output += `${lineNum}|${name}|[]\n`;
+                output += `${lineNum}#${name}|[]\n`;
                 console.log(` → 无选中结果`);
                 continue;
             }
@@ -108,14 +108,14 @@ async function main() {
             const item = selected[0];
             const details = await getDetails(item.id, item.media_type);
             if (details) {
-                output += `${lineNum}|${name}|${JSON.stringify([details])}\n`;
+                output += `${lineNum}#${name}|${JSON.stringify([details])}\n`;
                 console.log(` → ${details.title} (${details.year}) ${details.countries} ${details.genres}`);
             } else {
-                output += `${lineNum}|${name}|[]\n`;
+                output += `${lineNum}#${name}|[]\n`;
                 console.log(` → 获取详情失败`);
             }
         } catch (e) {
-            output += `${lineNum}|${name}|[]\n`;
+            output += `${lineNum}#${name}|[]\n`;
             console.log(` → 解析错误: ${e.message}`);
         }
         await new Promise(r => setTimeout(r, 200));

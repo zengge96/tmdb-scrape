@@ -41,7 +41,7 @@ function processSuccess(lineMap) {
         .filter(l => l.trim());
     let output = '';
     for (const line of lines) {
-        const parts = line.split('|');
+        const parts = line.split('#');
         if (parts.length < 3) continue;
         const lineNum = parseInt(parts[0]);
         const originalPath = lineMap[lineNum] || '';
@@ -77,7 +77,7 @@ function processError(lineMap) {
         .filter(l => l.trim());
     let output = '';
     for (const line of lines) {
-        const parts = line.split('|');
+        const parts = line.split('#');
         if (parts.length < 2) continue;
         const lineNum = parseInt(parts[0]);
         const originalPath = lineMap[lineNum] || '';
