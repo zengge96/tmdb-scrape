@@ -133,6 +133,14 @@ async function main() {
   
   fs.writeFileSync(OUTPUT_FILE, output);
   console.log(`\n完成！搜索结果已保存到: ${OUTPUT_FILE}`);
+
+// 输出提示信息，提醒 AI：查询或匹配失败是正常的，直接作为错误输出
+console.log('\n========================================');
+console.log('📌 AI 验证步骤提示：');
+console.log('  - 搜索结果为空是正常的（TMDB上没有对应影片）');
+console.log('  - 搜索到多个结果但无法确定匹配时，直接输出空选择作为错误即可');
+console.log('  - 不需要 AI 强制匹配或猜测，直接按错误处理');
+console.log('========================================');
 }
 
 main().catch(console.error);
