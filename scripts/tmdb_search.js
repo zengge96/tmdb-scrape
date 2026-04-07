@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * 步骤3：TMDB搜索（仅搜索，不获取详情）
- * 输入: 行号|片名|年份 文件
- * 输出: 行号|片名|[{搜索结果}]
+ * 输入: 行号#全路径名#片名#年份 文件
+ * 输出: 行号#全路径名#片名#[{搜索结果}]
  *
  * 用法: node tmdb_search.js <输入文件> <输出文件> [容错年份数，默认1]
  *
- * 输入格式: 31|Lamb|2021
- * 年份为可选，不提供时不过滤
+ * 输入格式: 31#/path/to/Movie.Name.2021.2160p.FGT#Movie Name#2021
+ * 输出格式: 31#/path/to/Movie.Name.2021.2160p.FGT#Movie Name#[{搜索结果}]
  */
 
 const fs = require('fs');
@@ -48,15 +48,16 @@ function tmdbSearch(query) {
   });
 }
 
-// 解析输入行：支持 3 种格式
-// 1. 行号|片名|年份
-// 2. 行号|片名（无年份）
+// 解析输入行：支持 2 种格式（使用 # 分隔）
+// 1. 行号#全路径名#片名#年份（推荐）
+// 2. 行号#全路径名#片名（无年份 - 兼容旧格式）
 function parseLine(line) {
-  const parts = line.trim().split('|');
-  const lineNum = parts[0];
-  const name = parts[1]?.trim() || '';
-  const year = parts[2]?.trim() || '';
-  return { lineNum, name, year };
+  const parts = line.trim().split('#');
+  const lineNum = parts[0]?.trim() || '';
+  const fullPath = parts[1]?.trim() || '';
+  const name = parts[2]?.trim() || '';
+  const year = parts[3]?.trim() || '';
+  return { lineNum, fullPath, name, year };
 }
 
 // 检查年份是否在容差范围内
@@ -85,7 +86,7 @@ async function main() {
 
   let output = '';
   for (const line of lines) {
-    const { lineNum, name, year } = parseLine(line);
+    const { lineNum, fullPath, name, year } = parseLine(line);
     
     if (!name) continue;
     
@@ -115,7 +116,8 @@ async function main() {
       overview: r.overview
     }));
 
-    output += `${lineNum}|${name}|${JSON.stringify(filtered)}\n`;
+    // 输出格式：行号#全路径名#片名#[{搜索结果}]
+    output += `${lineNum}#${fullPath}#${name}#${JSON.stringify(filtered)}\n`;
     console.log(` → 找到 ${filtered.length} 个结果`);
 
     await new Promise(r => setTimeout(r, 200));

@@ -42,23 +42,30 @@ D5 --> E[Step 4: 合并所有批次]
 1. **输入文件**: 负责处理特定的 `batch-XX.txt`（格式：行号|原始路径）。
 
 2. **流程要求**:
-   - **提取 (AI)**: 从原始路径中智能提取纯净片名和年份（处理路径乱码）。
+   - **提取 (AI)**: 从原始路径中智能提取**全路径名**、**纯净片名**和**年份**（处理路径乱码）。
    - **搜索 (脚本)**: 调用 `node tmdb_search.js` 获取候选列表，**内部进行年份容差过滤 (±1 年)**。
    - **验证 (AI)**: 从候选中选出 ID。
    - **详情 (脚本)**: 调用 `node tmdb_details.js` 获取国家、评分、海报等。
    - **映射 (脚本)**: 调用 `node map_path.js` 将详情与原始路径关联。
 
 3. **文件命名规范**:
-   - 搜索输入: `temp/batch-XX-clean.txt` (格式：行号|片名|年份)
-   - 搜索输出: `temp/batch-XX-search.txt`
+   - 搜索输入: `temp/batch-XX-clean.txt` (格式：行号#全路径名#片名#年份)
+   - 搜索输出: `temp/batch-XX-search.txt` (格式：行号#全路径名#片名#[{搜索结果}])
    - 详情输出: `temp/batch-XX-details.txt`
    - 成功输出: `results/success-XX.txt`
    - 错误输出: `results/error-XX.txt`
 
-4. **搜索脚本输入格式**: `行号|片名|年份`
-   - 年份由 AI 从路径中提取
+4. **搜索脚本输入/输出格式** (使用 `#` 分隔，避免路径中包含 `|`):
+   - **输入**: `行号#全路径名#片名#年份`
+     - 全路径名：原始文件完整路径
+     - 片名：AI 从路径中提取的纯净片名
+     - 年份：AI 从路径中提取的年份
+   - **输出**: `行号#全路径名#片名#[{搜索结果}]`
+     - 搜索结果包含：id, title, year, media_type, vote_average, overview
    - 脚本内部进行年份容差过滤 (±1 年)
-   - 用法: `node tmdb_search.js <输入文件> <输出文件> [容错年份数，默认1]`
+   - 用法: `node tmdb_search.js <输入文件> <输出文件> [容错年份数]`
+   - **优点**: 输出携带完整路径，AI 选择时无需再查原始文件
+   - ⚠️ **重要**: 搜索结果为空是正常的（TMDB 上没有对应影片），直接输出到错误结果，无需 AI 再去匹配
 
 5. **最终格式**: `路径#中文名#TMDB_ID#评分#海报#年份#国家#类型`
 
@@ -91,13 +98,13 @@ node get_one_bach_lines.js /tmp/indexed.txt /tmp/batch-02.txt 2 50
 # 2. Subagent 并发执行 (逻辑示意)
 
 # [Subagent 1]:
-# AI提取: 31|WALL-E|2008
+# AI提取: 31#./path/WALL-E.2008.2160p.FGT#WALL-E#2008
 # node tmdb_search.js batch-01-clean.txt batch-01-search.txt
 # -> node tmdb_details.js ...
 # -> node map_path.js list.txt batch-01-details.txt err1.txt results/success-01.txt ...
 
 # [Subagent 2]:
-# AI提取: 32|Frozen|2019
+# AI提取: 32#./path/Frozen.2019.2160p.FGT#Frozen#2019
 # node tmdb_search.js batch-02-clean.txt batch-02-search.txt
 # -> node tmdb_details.js ...
 # -> node map_path.js list.txt batch-02-details.txt err2.txt results/success-02.txt ...
@@ -113,3 +120,4 @@ node merge.js results/success- results/error- final_all_success.txt final_all_er
 - Subagent 在执行 `map_path.js` 时需要访问全局原始文件以读取完整路径。
 - Subagent并发是假并发，只允许1个实例运行。采用Subagent的目的主要还是减少主Agent的上下文冲击。
 - 年份过滤在脚本内部完成，容差默认为 ±1 年，可通过第3个参数调整。
+- 搜索结果为空时视为匹配失败，直接输出到错误结果，无需 AI 干预。
