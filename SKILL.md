@@ -100,10 +100,14 @@ node gen_file_with_num.js ./list.txt /tmp/indexed.txt
 node get_one_bach_lines.js /tmp/indexed.txt temp/batch-01.txt 1 50
 
 # [AI 步骤]: 提取 batch-01.txt 的片名/年份 -> 存入 batch-01-clean.txt
+## 重要提醒
+- **纯AI提取，不得使用脚本，也不要生成脚本提取**
 
 # [脚本步骤]: node tmdb_search.js temp/batch-01-clean.txt temp/batch-01-search.txt 1
 
 # [AI 步骤]: 从 search 结果中选 ID -> 存入 batch-01-selected.txt
+## 重要提醒
+- **纯AI选择，不得使用脚本，也不要生成脚本提取**
 
 # [脚本步骤]: node tmdb_details.js temp/batch-01-selected.txt temp/batch-01-details.txt
 
@@ -125,10 +129,8 @@ node merge.js results/success- results/error- final_all_success.txt final_all_er
 
 💡 **核心优势说明**:
 
-1. **无 Subagent 依赖**: 流程扁平化，直接在主任务中通过循环执行。
+1. **上下文隔离**: 通过 `batch-XX.txt` 将长文本拆分，确保 AI 在提取和选择 ID 时不会因为 Token 过长而导致幻觉。
 
-2. **上下文隔离**: 通过 `batch-XX.txt` 将长文本拆分，确保 AI 在提取和选择 ID 时不会因为 Token 过长而导致幻觉。
+2. **脚本容错**: 年份过滤和空结果处理由脚本控制，AI 仅负责逻辑判断，显著提升准确率。
 
-3. **脚本容错**: 年份过滤和空结果处理由脚本控制，AI 仅负责逻辑判断，显著提升准确率。
-
-4. **断点续传**: 若某个批次失败，只需重新处理该批次的 `success-XX.txt` 即可。
+3. **断点续传**: 若某个批次失败，只需重新处理该批次的 `success-XX.txt` 即可。
