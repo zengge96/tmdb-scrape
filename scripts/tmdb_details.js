@@ -83,12 +83,15 @@ async function main() {
     // 修复：正确分割输入格式
     // 格式: 行号#路径#片名#[{搜索结果}]
     const parts = line.split('#');
-    if (parts.length < 2) continue;
+    if (parts.length < 4) {
+      console.log("输入格式：行号#路径#片名#{选中的TMDB结果}，如果没有选中结果格式为行号#路径#片名#{}");
+      continue;
+    }
     
     const lineNum = parts[0];
     const fullPath = parts[1] || '';
     const name = parts[2] || '';
-    const searchResults = parts.slice(3).join('#'); // 包含剩余的搜索结果
+    const searchResults = parts[3] || ''
     
     console.log(`[${lineNum}] 查询详情: ${name}`);
 
