@@ -31,7 +31,7 @@ D5 --> E[Step 4: 全局合并]
 
 ### Step 1: 生成行号索引
 为原始文件生成全局行号，作为全流程的唯一关联键（Key）。
-- **命令**: `node gen_file_with_num.js /tmp/incomplete.txt /tmp/incomplete_with_num.txt`
+- **命令**: `node gen_file_with_num.js list.txt indexed.txt`
 
 ### Step 2: 切分批次
 将带行号的文件切分为多个批次文件（如 `batch-01.txt`, `batch-02.txt` 等），每个文件建议 50 行，以控制单次 AI 处理的 Token 长度。
@@ -94,22 +94,22 @@ D5 --> E[Step 4: 全局合并]
 ```bash
 # 1. 初始化环境
 mkdir -p temp results
-node gen_file_with_num.js ./list.txt /tmp/indexed.txt
+node gen_file_with_num.js list.txt temp/indexed.txt
 
 # 2. 循环处理批次 (以批次01为例)
-node get_one_bach_lines.js /tmp/indexed.txt temp/batch-01.txt 1 50
+node get_one_bach_lines.js indexed.txt temp/batch-01.txt 1 50
 
 # [AI 步骤]: 提取 batch-01.txt 的片名/年份 -> 存入 batch-01-clean.txt
 ##### **重要提醒：纯AI提取，不得使用脚本，也不要生成脚本提取**
 
 # [脚本步骤]: node tmdb_search.js temp/batch-01-clean.txt temp/batch-01-search.txt 1
 
-# [AI 步骤]: 从 search 结果中选 ID -> 存入 batch-01-selected.txt
+# [AI 步骤]: 从 search 结果中选 ID -> 存入 temp/batch-01-selected.txt
 ##### **重要提醒：纯AI选择，不得使用脚本，也不要生成脚本选择**
 
 # [脚本步骤]: node tmdb_details.js temp/batch-01-selected.txt temp/batch-01-details.txt
 
-# [脚本步骤]: node map_path.js /tmp/indexed.txt temp/batch-01-details.txt results/error-01.txt results/success-01.txt
+# [脚本步骤]: node map_path.js indexed.txt temp/batch-01-details.txt results/error-01.txt results/success-01.txt
 
 # 3. 最终汇总
 node merge.js results/success- results/error- final_all_success.txt final_all_error.txt
