@@ -2,7 +2,7 @@
 /**
  * 步骤1：生成行号文件，将原始的文件加上行号
  * 输入: 输入文件, 输出文件
- * 输出: 行号|路径（行号是原始文件中的行号）
+ * 输出: 行号#路径（行号是原始文件中的行号）
  * 
  * 用法: node gen_file_with_num.js <输入文件> <输出文件>
  */
@@ -30,7 +30,7 @@ function main() {
   for (let i = 1; i <= allLines.length; i++) {
     const line = allLines[i - 1];
     const path = line.split('#')[0]; // 只取#前的路径
-    output += `${i}|${path}\n`; // 使用原始行号
+    output += `${i}#${path}\n`; // 使用原始行号
   }
 
   // 写入输出
