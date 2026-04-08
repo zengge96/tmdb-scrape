@@ -1,24 +1,23 @@
 #!/usr/bin/env node
 /**
  * 步骤6：映射路径
- * 输入: 原始文件, 成功文件, 错误文件, 成功输出, 错误输出
+ * 输入: 原始文件, 详情文件, 成功输出, 错误输出；详情文件格式：行号#路径#片名#{完整详情}，如果没有详情格式为：行号#路径#片名#{}。
  * 格式: 路径#中文名#TMDB_ID#评分#海报#年份#国家#类型
  * 
- * 用法: node map_path.js <原始文件> <成功文件> <错误文件> <成功输出> <错误输出>
+ * 用法: node map_path.js <原始文件> <详情文件> <成功输出> <错误输出>
  */
 
 const fs = require('fs');
 
-if (process.argv.length < 7) {
-  console.log('用法: node map_path.js <原始文件> <成功文件> <错误文件> <成功输出> <错误输出>');
+if (process.argv.length < 6) {
+  console.log('用法: node map_path.js <原始文件> <详情文件> <成功输出> <错误输出>');
   process.exit(1);
 }
 
 const INCOMPLETE_FILE = process.argv[2];
-const TEMP_SUCCESS = process.argv[3];
-const TEMP_ERROR = process.argv[4];
-const OUTPUT_SUCCESS = process.argv[5];
-const OUTPUT_ERROR = process.argv[6];
+const TEMP_DETAIL = process.argv[3];
+const OUTPUT_SUCCESS = process.argv[4];
+const OUTPUT_ERROR = process.argv[5];
 
 // 建立行号→原始路径的映射
 function buildLineMap() {
@@ -36,8 +35,8 @@ function buildLineMap() {
 
 // 处理成功记录
 function processSuccess(lineMap) {
-  if (!fs.existsSync(TEMP_SUCCESS)) return '';
-  const lines = fs.readFileSync(TEMP_SUCCESS, 'utf-8')
+  if (!fs.existsSync(TEMP_DETAIL)) return '';
+  const lines = fs.readFileSync(TEMP_DETAIL, 'utf-8')
     .split('\n')
     .filter(l => l.trim());
   let output = '';
@@ -45,20 +44,14 @@ function processSuccess(lineMap) {
     const parts = line.split('#');
     if (parts.length < 3) continue;
     const lineNum = parseInt(parts[0]);
-    // 去掉行号前缀（如 "1|." -> "."）
     let originalPath = lineMap[lineNum] || '';
-    if (originalPath.includes('|')) {
-      originalPath = originalPath.substring(originalPath.indexOf('|') + 1);
-    }
 
     let tmdb = {};
     try {
-      // 格式: parts[0]=行号, parts[1]=路径, parts[2]=片名, parts[3]="{搜索}]|[{详情}]"
-      // 需要先按 | 分割取第二部分才是详情JSON
-      const searchAndDetail = parts[3] || '';
-      const detailJson = searchAndDetail.split('|')[1] || '[]';
+      // 格式: parts[0]=行号, parts[1]=路径, parts[2]=片名, parts[3]="{详情}"
+      const detailJson = parts[3] || '{}';
       const json = JSON.parse(detailJson);
-      tmdb = Array.isArray(json) ? (json[0] || {}) : json;
+      tmdb = Array.isArray(json) ? (json || {}) : json;
     } catch(e) {
       tmdb = {};
     }
@@ -79,28 +72,30 @@ function processSuccess(lineMap) {
 
 // 处理错误记录
 function processError(lineMap) {
-  if (!fs.existsSync(TEMP_ERROR)) return '';
-  const lines = fs.readFileSync(TEMP_ERROR, 'utf-8')
+  if (!fs.existsSync(TEMP_DETAIL)) return '';
+  const lines = fs.readFileSync(TEMP_DETAIL, 'utf-8')
     .split('\n')
     .filter(l => l.trim());
   let output = '';
   for (const line of lines) {
     const parts = line.split('#');
-    if (parts.length < 2) continue;
-    // 🔧 修复：检查 parts[0] 是否为有效行号
+    if (parts.length < 3) continue;
     const lineNum = parseInt(parts[0]);
-    if (isNaN(lineNum)) {
-      // 如果第一部分不是数字，说明是路径格式错误，跳过
-      continue;
-    }
-    // 去掉行号前缀（如 "1|." -> "."）
     let originalPath = lineMap[lineNum] || '';
-    if (originalPath.includes('|')) {
-      originalPath = originalPath.substring(originalPath.indexOf('|') + 1);
+
+    let tmdb = {};
+    try {
+      // 格式: parts[0]=行号, parts[1]=路径, parts[2]=片名, parts[3]="{详情}"
+      const detailJson = parts[3] || '{}';
+      const json = JSON.parse(detailJson);
+      tmdb = Array.isArray(json) ? (json || {}) : json;
+    } catch(e) {
+      tmdb = {};
     }
-    const reason = parts.slice(1).join('|');
-    output += `${originalPath}#${reason}\n`;
-  }
+
+    if (tmdb.id) continue;
+    output += `${originalPath}\n`;
+    }
   return output;
 }
 
@@ -108,8 +103,7 @@ function processError(lineMap) {
 function main() {
   console.log('【步骤6】映射路径\n');
   console.log(`原始文件: ${INCOMPLETE_FILE}`);
-  console.log(`成功文件: ${TEMP_SUCCESS}`);
-  console.log(`错误文件: ${TEMP_ERROR}`);
+  console.log(`详情文件: ${TEMP_DETAIL}`);
   console.log(`成功输出: ${OUTPUT_SUCCESS}`);
   console.log(`错误输出: ${OUTPUT_ERROR}\n`);
 
