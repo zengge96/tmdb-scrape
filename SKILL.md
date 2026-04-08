@@ -100,14 +100,12 @@ node gen_file_with_num.js ./list.txt /tmp/indexed.txt
 node get_one_bach_lines.js /tmp/indexed.txt temp/batch-01.txt 1 50
 
 # [AI 步骤]: 提取 batch-01.txt 的片名/年份 -> 存入 batch-01-clean.txt
-
-**重要提醒：纯AI提取，不得使用脚本，也不要生成脚本提取**
+##### **重要提醒：纯AI提取，不得使用脚本，也不要生成脚本提取**
 
 # [脚本步骤]: node tmdb_search.js temp/batch-01-clean.txt temp/batch-01-search.txt 1
 
 # [AI 步骤]: 从 search 结果中选 ID -> 存入 batch-01-selected.txt
-
-**重要提醒：纯AI选择，不得使用脚本，也不要生成脚本选择**
+##### **重要提醒：纯AI选择，不得使用脚本，也不要生成脚本选择**
 
 # [脚本步骤]: node tmdb_details.js temp/batch-01-selected.txt temp/batch-01-details.txt
 
