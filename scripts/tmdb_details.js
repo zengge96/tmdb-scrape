@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * 步骤5：TMDB详情查询（根据AI选中的ID获取详细信息）
- * 输入: 行号#路径#片名#[{选中的TMDB结果}]
- * 输出: 行号#路径#片名#[{搜索结果}]|[{完整详情}]
+ * 输入: 行号#路径#片名#{选中的TMDB结果}
+ * 输出: 行号#路径#片名#{完整详情}
  *
  * 用法: node tmdb_details.js <输入文件> <输出文件>
  */
@@ -93,24 +93,17 @@ async function main() {
     console.log(`[${lineNum}] 查询详情: ${name}`);
 
     try {
-      // 解析搜索结果：可以是数组 [ 开头的搜索结果，或 { 开头的单个object
-      if (!searchResults.startsWith('[') && !searchResults.startsWith('{')) {
-        output += `${lineNum}#${fullPath}#${name}#|[]\n`;
-        console.log(` → 无搜索结果`);
+      // 解析搜索结果：只能是 { 开头的单个object
+      if (!searchResults.startsWith('{')) {
+        output += `${lineNum}#${fullPath}#${name}#{}\n`;
+        console.log(` → 错误：AI验证步骤缺失！搜索结果是数组，请从候选中选择1个正确的ID，输出单个object格式。输入: ${searchResults.substring(0, 80)}...`);
         continue;
       }
       
       const selected = JSON.parse(searchResults);
       
-      // ⚠️ 验证输入格式：必须是单个object，不能是array
-      if (Array.isArray(selected)) {
-        output += `${lineNum}#${fullPath}#${name}#|[]\n`;
-        console.log(` → 错误：AI验证步骤缺失！搜索结果是数组，请从候选中选择1个正确的ID，输出单个object格式。输入: ${searchResults.substring(0, 80)}...`);
-        continue;
-      }
-      
       if (!selected || !selected.id) {
-        output += `${lineNum}#${fullPath}#${name}#|[]\n`;
+        output += `${lineNum}#${fullPath}#${name}#{}\n`;
         console.log(` → 无选中结果`);
         continue;
       }
@@ -119,14 +112,14 @@ async function main() {
       const item = selected;
       const details = await getDetails(item.id, item.media_type);
       if (details) {
-        output += `${lineNum}#${fullPath}#${name}#${searchResults}|${JSON.stringify([details])}\n`;
+        output += `${lineNum}#${fullPath}#${name}#${JSON.stringify([details])}\n`;
         console.log(` → ${details.title} (${details.year}) ${details.countries} ${details.genres}`);
       } else {
-        output += `${lineNum}#${fullPath}#${name}#${searchResults}|[]\n`;
+        output += `${lineNum}#${fullPath}#${name}#{}\n`;
         console.log(` → 获取详情失败`);
       }
     } catch (e) {
-      output += `${lineNum}#${fullPath}#${name}#|[]\n`;
+      output += `${lineNum}#${fullPath}#${name}#{}\n`;
       console.log(` → 解析错误: ${e.message}`);
     }
     
