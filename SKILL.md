@@ -110,7 +110,7 @@ node get_one_bach_lines.js indexed.txt temp/batch-01.txt 1 50
 
 # [脚本步骤]: node tmdb_details.js temp/batch-01-selected.txt temp/batch-01-details.txt
 
-# [脚本步骤]: node map_path.js list.txt temp/batch-01-details.txt results/error-01.txt results/success-01.txt
+# [脚本步骤]: node map_path.js list.txt temp/batch-01-details.txt results/success-01.txt results/error-01.txt
 
 # 3. 最终汇总
 node merge.js results/success- results/error- final_all_success.txt final_all_error.txt
