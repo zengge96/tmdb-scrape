@@ -94,7 +94,8 @@ async function main() {
 
     try {
       // 解析搜索结果：只能是 { 开头的单个object
-      if (!searchResults.startsWith('{')) {
+      const rawJson = searchResults.trim();
+      if (!rawJson.startsWith('{')) {
         output += `${lineNum}#${fullPath}#${name}#{}\n`;
         console.log(` → 错误：AI验证步骤缺失！搜索结果是数组，请从候选中选择1个正确的ID，输出单个object格式。输入: ${searchResults.substring(0, 80)}...`);
         continue;
@@ -112,7 +113,7 @@ async function main() {
       const item = selected;
       const details = await getDetails(item.id, item.media_type);
       if (details) {
-        output += `${lineNum}#${fullPath}#${name}#${JSON.stringify([details])}\n`;
+        output += `${lineNum}#${fullPath}#${name}#${JSON.stringify(details)}\n`;
         console.log(` → ${details.title} (${details.year}) ${details.countries} ${details.genres}`);
       } else {
         output += `${lineNum}#${fullPath}#${name}#{}\n`;
