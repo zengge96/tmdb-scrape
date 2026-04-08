@@ -63,6 +63,7 @@ D5 --> E[Step 4: 全局合并]
 4. **脚本详情**: 调用 `node tmdb_details.js` 获取国家、评分、海报等详细元数据。
 
 5. **脚本映射**: 调用 `node map_path.js` 将 API 结果与原始路径关联，生成最终行数据。
+   * **输入**: `不带行号的原始文件，例如list.txt`
    * **成功输出**: `results/success-XX.txt`
    * **错误输出**: `results/error-XX.txt`
 
@@ -109,7 +110,7 @@ node get_one_bach_lines.js indexed.txt temp/batch-01.txt 1 50
 
 # [脚本步骤]: node tmdb_details.js temp/batch-01-selected.txt temp/batch-01-details.txt
 
-# [脚本步骤]: node map_path.js indexed.txt temp/batch-01-details.txt results/error-01.txt results/success-01.txt
+# [脚本步骤]: node map_path.js list.txt temp/batch-01-details.txt results/error-01.txt results/success-01.txt
 
 # 3. 最终汇总
 node merge.js results/success- results/error- final_all_success.txt final_all_error.txt
