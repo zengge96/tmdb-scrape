@@ -35,7 +35,9 @@ D5 --> E[Step 4: 全局合并]
 
 ### Step 2: 切分批次
 将带行号的文件切分为多个批次文件（如 `batch-01.txt`, `batch-02.txt` 等），每个文件建议 50 行，以控制单次 AI 处理的 Token 长度。
-- **命令**: `node get_one_bach_lines.js <输入> <输出> <批次编号> <行数>`
+- **命令**: `node get_one_bach_lines.js <输入> <批次编号> <行数>`
+- **输入**: 带行号的文件, 批次编号, 每批次行数
+- **输出**: 打印到控制台，本批次的所有行，格式：行号#路径
 
 ### Step 3: 批次执行逻辑（通过Subagent执行）
 针对每个批次文件（例如 `batch-01.txt`），启一个Subagent，注意只启一个Subagent，不要多个并发，否则会触发API 429错误，按顺序执行以下任务：
@@ -98,10 +100,12 @@ mkdir -p temp results
 node gen_file_with_num.js list.txt temp/indexed.txt
 
 # 2. 循环处理批次 (以批次01为例)
-node get_one_bach_lines.js indexed.txt temp/batch-01.txt 1 50
+node get_one_bach_lines.js indexed.txt 1 50
 
-# [AI 步骤]: 提取 batch-01.txt 的片名/年份 -> 存入 batch-01-clean.txt
+# [AI 步骤]: 从get_one_bach_lines.js 控制台输出提取片名/年份 -> 存入 batch-01-clean.txt
 ##### **重要提醒：纯AI提取，不得使用脚本，也不要生成脚本提取**
+##### * 1、影片名：从路径中提取，如果路径中同时存在多种语言片名，中文优先*
+##### * 2、年份：从路径中提取，如果路径中没有年份，保持为空*
 
 # [脚本步骤]: node tmdb_search.js temp/batch-01-clean.txt temp/batch-01-search.txt 1
 
