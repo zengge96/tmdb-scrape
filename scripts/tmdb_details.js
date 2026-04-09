@@ -55,8 +55,7 @@ function getDetails(id, type) {
             media_type: type,
             countries: countries,
             genres: genres,
-            imdb_id: json.external_ids?.imdb_id || '',
-            overview: json.overview || ''
+            imdb_id: json.external_ids?.imdb_id || ''
           });
         } catch (e) {
           resolve(null);
