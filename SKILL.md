@@ -16,17 +16,11 @@ A[原始文件] --> B[Step 1: 生成行号]
 B --> C[Step 2: 读取批次]
 C --> D[Step 3: 循环处理批次]
 D --> E[Step 4: 全局合并]
-subgraph "单个批次处理逻辑"
-D1[AI: 提取片名和年份] --> D2[脚本: TMDB 搜索+过滤]
-D2 --> D3[AI: 验证选择]
-D3 --> D4[脚本: TMDB 详情查询]
-D4 --> D5[脚本: 路径映射回填]
-end
 ```
 
 ```mermaid
 graph TD
-subgraph "单个批次处理逻辑"
+subgraph "Setp 3：单个批次处理逻辑"
 D1[AI: 提取片名和年份] --> D2[脚本: TMDB 搜索+过滤]
 D2 --> D3[AI: 验证选择]
 D3 --> D4[脚本: TMDB 详情查询]
