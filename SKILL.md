@@ -13,13 +13,13 @@ description: 电影信息补全工作流。通过将大任务切分为小批次�
 ```mermaid
 graph TD
 A[原始文件] --> B[Step 1: 生成行号]
-B --> C[Step 3: 循环处理批次]
-C --> D[Step 4: 全局合并]
+B --> C[Step 2: 循环处理批次]
+C --> D[Step 3: 全局合并]
 ```
 
 ```mermaid
 graph TD
-subgraph "Setp 3：单个批次处理逻辑"
+subgraph "Setp 2：单个批次处理逻辑"
 C1[Step 2: 读取批次] --> C2[AI: 提取片名和年份]
 C2 --> C3[脚本: TMDB 搜索+过滤]
 C3 --> C4[AI: 验证选择]
