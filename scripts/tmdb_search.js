@@ -116,8 +116,7 @@ async function main() {
       title: r.title || r.name,
       year: (r.release_date || r.first_air_date || '').substring(0, 4),
       media_type: r.media_type,
-      vote_average: r.vote_average,
-      overview: r.overview
+      vote_average: r.vote_average
     }));
 
     // 输出格式：行号#全路径名#片名#[{搜索结果}]
