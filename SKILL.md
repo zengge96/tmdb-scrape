@@ -20,7 +20,7 @@ C --> D[Step 3: 全局合并]
 ```mermaid
 graph TD
 subgraph "Setp 2：单个批次处理逻辑"
-C1[Step 2: 读取批次] --> C2[AI: 提取片名和年份]
+C1[脚本: 读取批次] --> C2[AI: 提取片名和年份]
 C2 --> C3[脚本: TMDB 搜索+过滤]
 C3 --> C4[AI: 验证选择]
 C4 --> C5[脚本: TMDB 详情查询]
